@@ -5,89 +5,83 @@ import { Button, FormInput, FormLabel, Header, Icon, List, ListItem, Text } from
 export default class App extends React.Component {
   constructor(props, ctx) {
     super(props, ctx);
-
+    
     this.toggleSwitch = this.toggleSwitch.bind(this);    
     this.handlePressAutomatic = this.handlePressAutomatic.bind(this);
     this.handlePressAutoTP = this.handlePressAutoTP.bind(this);
     this.handlePressIn = this.handlePressIn.bind(this);
     this.handlePressOut = this.handlePressOut.bind(this)
     this.handlePressRefresh = this.handlePressRefresh.bind(this)
-    this.sendRequest = this.sendRequest.bind(this);
-    this.getRequest = this.getRequest.bind(this);
 
     this.state = {
       switched: false,
       IPInput: "",
-      IPOffline: "192.168.1.15",
-      settings: "...",
-      selectedSetting: "",
-      status: "Please make sure you are connected to the system"
+      IPAddress: "192.168.1.15",
+      mode: "...",
+      status: "Please make sure you are connected to the system",
     };
   }
 
   toggleSwitch = () => {
     this.setState(prevState => {
       return {
-        switched: !prevState.switched
+        switched: !prevState.switched 
       };
     });
   };
 
   handlePressAutomatic(){
-      this.setState({
-        selectedSetting: "auto"        
-      })
-      sendRequest();
+    this.state.switched ? this.setState({ IPAddress: this.state.IPInput }) : this.setState({ IPAddress: "192.168.1.15" })
+    
+    fetch('http://' + this.state.IPAddress + '/?cmd=auto', { timeout: 5000 })
+    this.handlePressRefresh();
   }
 
   handlePressAutoTP(){
-    this.setState({
-      selectedSetting: "phase"        
-    })
-    sendRequest();
+    this.state.switched ? this.setState({ IPAddress: this.state.IPInput }) : this.setState({ IPAddress: "192.168.1.15" })
+    
+    fetch('http://' + this.state.IPAddress + '/?cmd=phase', { timeout: 5000 })
+    this.handlePressRefresh();
   }
 
   handlePressIn(){
-    this.setState({
-      selectedSetting: "on"        
-    })
-    sendRequest();
+    this.state.switched ? this.setState({ IPAddress: this.state.IPInput }) : this.setState({ IPAddress: "192.168.1.15" })
+    
+    fetch('http://' + this.state.IPAddress + '/?cmd=on', { timeout: 5000 })    
+    this.handlePressRefresh();
   }
 
   handlePressOut(){
-    this.setState({
-      selectedSetting: "off"        
-    })
-    sendRequest();
+    this.state.switched ? this.setState({ IPAddress: this.state.IPInput }) : this.setState({ IPAddress: "192.168.1.15" })
+    
+    fetch('http://' + this.state.IPAddress + '/?cmd=off', { timeout: 5000 })    
+    this.handlePressRefresh();
   }
 
   handlePressRefresh(){
+    this.state.switched ? this.setState({ IPAddress: this.state.IPInput }) : this.setState({ IPAddress: "192.168.1.15" })
+    
+    var int_modeLen, str_mode, str_status;
+
+    fetch('http://' + this.state.IPAddress + '/?cmd=info', { timeout: 5000 }).then(  
+      function(response) {      
+        // Examine the text in the response   
+        response.text().then(function(data) {  
+          int_modeLen = data.indexOf(',') + 1; //240
+          str_mode = data.substring(int_modeLen);
+          str_status = data.substring(228,int_modeLen-1);
+          ToastAndroid.show(str_mode, ToastAndroid.SHORT); // MODE
+          ToastAndroid.show(str_status, ToastAndroid.SHORT); // STATUS
+        });
+      }  
+    )  
+    .catch(function(err) {  
+    }); 
+
     this.setState({
-      selectedSetting: "info"        
+      mode: "str_mode dapat ung laman",
+      status: "str_status dapat ung laman"
     })
-    sendRequest();
-  }
-
-  sendRequest(){
-    {/*
-      if(switched == false){
-        go to "http://"+IPOffline+"/?cmd="+selectedSetting
-        get response
-        getRequest();        
-      }
-    */}
-  }
-
-  getRequest(){
-    {/*
-      check if response length is greater than 227
-      // start sa 228 hanggang sa index ng comma
-      // yung 228 ay fixed length ng http code button kaya ang susunod na index ay yung first character ng status
-      this.setState({
-        settings: 
-        status:
-      })
-    */}
   }
 
   render() {
@@ -108,8 +102,8 @@ export default class App extends React.Component {
 
         {/*  LIGHT BLUE - MODE + STATUS */}     
         <View style={{width: 360, height: 240, backgroundColor: '#1D2733', justifyContent: 'center', alignItems: 'center'}}>
-          <Text style={{ fontSize: 50, color: 'white', top: -10}}> {this.state.settings} </Text>
-          <Text style={{ fontSize: 15, color: 'white'}}> {this.state.status} </Text>
+          <Text style={{ fontSize: 50, color: 'white', top: -10}}> {this.state.mode} </Text>
+          <Text style={{ fontSize: 13, color: 'white'}}> {this.state.status} </Text>
         </View>
         {/*  LIGHT BLUE - MODE + STATUS */}  
 
@@ -118,59 +112,60 @@ export default class App extends React.Component {
           {
             this.state.switched &&
               <FormInput 
-                style={{ fontSize: 15, color: 'white', width: 100, left: 115, top: 10, textAlign: 'center'}} 
+                style={{ fontSize: 13, color: 'white', width: 150, left: 88, top: 25, textAlign: 'center', padding: 5}} 
                 onChangeText={text => this.setState({ IPInput: text})} 
                 value={this.state.IPInput} 
                 underlineColorAndroid='#fc1b6e'
               />
           }
-          <Text style={{ fontSize: 15, color: 'white', left: 105, top: 28}}> Offline </Text>
+
+          <Text style={{ fontSize: 15, color: 'white', left: 92, top: 31}}> OFFLINE </Text>
           <Switch
             onValueChange={this.toggleSwitch} 
             tintColor= '#10191E'
             onTintColor= '#fc1b6e'
             thumbTintColor= 'white'
-            style={{ top: 5, left: -155}}
+            style={{ top: 9, left: -157}}
             value={this.state.switched}
-          />
-          <Text style={{ fontSize: 15.3, color: 'white', left: 213, top: -18}}> Online </Text>
+            />
+          <Text style={{ fontSize: 15.3, color: 'white', left: 208, top: -14.05}}> ONLINE </Text>
 
           <View style={{width: 180, height: 260, backgroundColor: '#10191E'}}>
             <Button 
               title='AUTOMATIC' 
-              buttonStyle={{ width: 130, height: 40, borderRadius: 5, marginTop: 50, marginLeft: 15}} 
+              buttonStyle={{ width: 130, height: 40, borderRadius: 5, marginTop: 50, marginLeft: 18}} 
               backgroundColor="white" 
               color="#10191E"
               onPress={this.handlePressAutomatic}
-            />
+              fontWeight="bold"/>
             <Button 
               title='MANUAL-IN' 
-              buttonStyle={{ width: 130, height: 40, borderRadius: 5, marginTop: 50, marginLeft: 15}} 
+              buttonStyle={{ width: 130, height: 40, borderRadius: 5, marginTop: 50, marginLeft: 18}} 
               backgroundColor="white" 
               color="#10191E"
               onPress={this.handlePressIn}
-            />
+            fontWeight="bold"/>
           </View>
           
           <View style={{width: 180, height: 260, backgroundColor: '#10191E', top: -264, left: 180}}>
             <Button 
               title='AUTO + TP' 
-              buttonStyle={{ width: 130, height: 40, borderRadius: 5, marginTop: 54, marginLeft: 5}} 
+              buttonStyle={{ width: 130, height: 40, borderRadius: 5, marginTop: 54, marginLeft: 2}} 
               backgroundColor="white" 
               color="#10191E"
               onPress={this.handlePressAutoTP}
-            />
+              fontWeight="bold"/>
             <Button 
               title='MANUAL-OUT' 
-              buttonStyle={{ width: 130, height: 40, borderRadius: 5, marginTop: 50, marginLeft: 5}} 
+              buttonStyle={{ width: 130, height: 40, borderRadius: 5, marginTop: 51, marginLeft: 0}} 
               backgroundColor="white" 
               color="#10191E"
               onPress={this.handlePressOut}
-            />
+              fontWeight="bold"/>
           </View>
         </View>
         {/*  DARK BLUE - OFFLINE/ONLINE + MODE */}  
       </View>
     );
   }
-}          
+}
