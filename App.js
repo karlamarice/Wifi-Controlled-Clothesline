@@ -22,40 +22,71 @@ export default class App extends React.Component {
     };
   }
 
+  componentDidMount() {
+    this.state.switched ? this.setState({ IPAddress: this.state.IPInput }) : this.setState({ IPAddress: "192.168.1.15" })
+    
+    fetch('http://' + this.state.IPAddress + '/?cmd=info', { timeout: 5000 }).then(  
+      function(response) {      
+        ToastAndroid.show('Connected', ToastAndroid.SHORT);     
+        this.handlePressRefresh();        
+      }  
+    )
+    .catch(function(err) {  
+      ToastAndroid.show('Not Connected', ToastAndroid.SHORT);      
+    }); 
+  }
+
   toggleSwitch = () => {
     this.setState(prevState => {
       return {
         switched: !prevState.switched 
       };
     });
+    this.handlePressRefresh();
   };
 
   handlePressAutomatic(){
     this.state.switched ? this.setState({ IPAddress: this.state.IPInput }) : this.setState({ IPAddress: "192.168.1.15" })
     
-    fetch('http://' + this.state.IPAddress + '/?cmd=auto', { timeout: 5000 })
-    this.handlePressRefresh();
+    if(this.state.IPAddress != ''){   
+      fetch('http://' + this.state.IPAddress + '/?cmd=auto', { timeout: 5000 })
+      this.handlePressRefresh();
+    }else{
+      ToastAndroid.show('Please enter public IP Address or choose Offline', ToastAndroid.SHORT);            
+    }
   }
 
   handlePressAutoTP(){
     this.state.switched ? this.setState({ IPAddress: this.state.IPInput }) : this.setState({ IPAddress: "192.168.1.15" })
     
-    fetch('http://' + this.state.IPAddress + '/?cmd=phase', { timeout: 5000 })
-    this.handlePressRefresh();
+    if(this.state.IPAddress != ''){   
+      fetch('http://' + this.state.IPAddress + '/?cmd=phase', { timeout: 5000 })
+      this.handlePressRefresh();
+    }else{
+      ToastAndroid.show('Please enter public IP Address or choose Offline', ToastAndroid.SHORT);            
+    }
   }
 
   handlePressIn(){
     this.state.switched ? this.setState({ IPAddress: this.state.IPInput }) : this.setState({ IPAddress: "192.168.1.15" })
     
-    fetch('http://' + this.state.IPAddress + '/?cmd=on', { timeout: 5000 })    
-    this.handlePressRefresh();
+    if(this.state.IPAddress != ''){
+      fetch('http://' + this.state.IPAddress + '/?cmd=on', { timeout: 5000 })    
+      this.handlePressRefresh();
+    }else{
+      ToastAndroid.show('Please enter public IP Address or choose Offline', ToastAndroid.SHORT);            
+    }
   }
 
   handlePressOut(){
     this.state.switched ? this.setState({ IPAddress: this.state.IPInput }) : this.setState({ IPAddress: "192.168.1.15" })
     
-    fetch('http://' + this.state.IPAddress + '/?cmd=off', { timeout: 5000 })    
-    this.handlePressRefresh();
+    if(this.state.IPAddress != ''){
+      fetch('http://' + this.state.IPAddress + '/?cmd=off', { timeout: 5000 })    
+      this.handlePressRefresh();
+    }else{
+      ToastAndroid.show('Please enter public IP Address or choose Offline', ToastAndroid.SHORT);            
+    }
   }
 
   handlePressRefresh(){
@@ -63,25 +94,26 @@ export default class App extends React.Component {
     
     var int_modeLen, str_mode, str_status;
 
-    fetch('http://' + this.state.IPAddress + '/?cmd=info', { timeout: 5000 }).then(  
-      function(response) {      
+    if(this.state.IPAddress != ''){
+      fetch('http://' + this.state.IPAddress + '/?cmd=info', { timeout: 5000 })
+      .then(response =>{   
         // Examine the text in the response   
-        response.text().then(function(data) {  
+        response.text().then(data => {
           int_modeLen = data.indexOf(',') + 1; //240
           str_mode = data.substring(int_modeLen);
           str_status = data.substring(228,int_modeLen-1);
-          ToastAndroid.show(str_mode, ToastAndroid.SHORT); // MODE
-          ToastAndroid.show(str_status, ToastAndroid.SHORT); // STATUS
-        });
-      }  
-    )  
-    .catch(function(err) {  
-    }); 
-
-    this.setState({
-      mode: "str_mode dapat ung laman",
-      status: "str_status dapat ung laman"
-    })
+          this.setState({
+            mode: str_mode,
+            status: str_status
+          })
+        })
+      })  
+      .catch(function(err) {  
+        ToastAndroid.show('Not Connected', ToastAndroid.SHORT);      
+      }); 
+    }else{
+      ToastAndroid.show('Please enter public IP Address or choose Offline', ToastAndroid.SHORT);            
+    }
   }
 
   render() {
